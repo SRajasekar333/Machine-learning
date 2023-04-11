@@ -1,0 +1,37 @@
+import cv2
+import numpy as np
+
+# read the input image
+img = cv2.imread('sphere1.jpg')
+
+# convert the image to grayscale
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# apply threshold to create a binary mask
+thresh = cv2.threshold(gray, 220, 255, cv2.THRESH_BINARY)[1]
+
+# apply morphological closing operation
+kernel = np.ones((5,5),np.uint8)
+closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+# find contours
+contours, hierarchy = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# find center of largest contour
+if len(contours) > 0:
+    c = max(contours, key=cv2.contourArea)
+    M = cv2.moments(c)
+    cx = int(M['m10'] / M['m00'])
+    cy = int(M['m01'] / M['m00'])
+    center = (cx, cy)
+else:
+    center = None
+
+# draw circle and center point on original image
+if center is not None:
+    cv2.circle(img, center, 20, (0, 255, 0), 2)
+    cv2.circle(img, center, 2, (0, 0, 255), 3)
+
+cv2.imshow('Output Image', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
